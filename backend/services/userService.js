@@ -1,48 +1,29 @@
-import { db } from "../db.js";
+import User from '../model/userModel.js';  
 
-const getAllUsers = () => {
-  return new Promise((resolve, reject) => {
-    const q = "SELECT * FROM usuarios";
-    db.query(q, (err, data) => {
-      if (err) reject(err);
-      else resolve(data);
-    });
-  });
+const getAllUsers = async () => {
+  return await User.findAll();
 };
 
-const insertUser = (values) => {
-  return new Promise((resolve, reject) => {
-    const q = "INSERT INTO usuarios(`nome`, `cpf`, `sexo`, `data_nascimento`, `email`, `fone`, `endereco`) VALUES(?)";
-    db.query(q, [values], (err, result) => {
-      if (err) reject(err);
-      else resolve(result);
-    });
-  });
+const createUser = async (userData) => {
+  return await User.create(userData);
 };
 
-const updateUserById = (id, values) => {
-  return new Promise((resolve, reject) => {
-    const q = "UPDATE usuarios SET `nome` = ?, `cpf` = ?, `sexo` = ?, `data_nascimento` = ?, `email` = ?, `fone` = ?, `endereco` = ? WHERE `id` = ?";
-    db.query(q, [...values, id], (err, result) => {
-      if (err) reject(err);
-      else resolve(result);
-    });
+const updateUserById = async (id, userData) => {
+  const [updated] = await User.update(userData, {
+    where: { id }
   });
+  return updated;  
 };
 
-const deleteUserById = (id) => {
-  return new Promise((resolve, reject) => {
-    const q = "DELETE FROM usuarios WHERE `id` = ?";
-    db.query(q, [id], (err, result) => {
-      if (err) reject(err);
-      else resolve(result);
-    });
+const deleteUserById = async (id) => {
+  return await User.destroy({
+    where: { id }
   });
 };
 
 export default {
   getAllUsers,
-  insertUser,
+  createUser,
   updateUserById,
-  deleteUserById,
+  deleteUserById
 };

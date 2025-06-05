@@ -1,58 +1,88 @@
-import userService from "../services/userService.js";
+import User from '../model/userModel.js'; 
+import userService from '../services/userService.js';
 
 const getUsers = async (req, res) => {
   try {
     const users = await userService.getAllUsers();
-    return res.status(200).json(users);
+    res.json(users);
   } catch (err) {
-    return res.status(500).json(err);
+    console.error('Error fetching users:', err);
+    res.status(500).json({ error: 'Failed to fetch users', details: err.message });
   }
 };
 
 const addUser = async (req, res) => {
   try {
-    const values = [
-      req.body.nome,
-      req.body.cpf,
-      req.body.sexo,
-      req.body.data_nascimento,
-      req.body.email,
-      req.body.fone,
-      req.body.endereco,
-    ];
+    const {
+      name,
+      cpf,
+      gender,
+      birthDate, 
+      email,
+      phone,
+      address,
+    } = req.body;
 
-    await userService.insertUser(values);
-    return res.status(200).json("Usuário criado com sucesso.");
-  } catch (err) {
-    return res.status(500).json(err);
+    const user = await User.create({
+      name,
+      cpf,
+      gender,
+      birth_date: birthDate, 
+      email,
+      phone,
+      address,
+    });
+
+    res.status(201).json(user);
+  } catch (error) {
+    console.error('Erro ao criar usuário:', error);
+    res.status(500).json({ error: 'Error creating user', details: error.message });
   }
 };
 
 const updateUser = async (req, res) => {
   try {
-    const values = [
-      req.body.nome,
-      req.body.cpf,
-      req.body.sexo,
-      req.body.data_nascimento,
-      req.body.email,
-      req.body.fone,
-      req.body.endereco,
-    ];
+    const { id } = req.params;
+const {
+  name,
+  cpf,
+  gender,
+  birthDate, 
+  email,
+  phone,
+  address
+} = req.body;
 
-    await userService.updateUserById(req.params.id, values);
-    return res.status(200).json("Usuário atualizado com sucesso.");
-  } catch (err) {
-    return res.status(500).json(err);
+const [updated] = await User.update({
+  name,
+  cpf,
+  gender,
+  birth_date: birthDate,
+  email,
+  phone,
+  address
+}, { where: { id } });
+    if (updated) {
+      res.status(200).json({ message: 'User updated successfully.' });
+    } else {
+      res.status(404).json({ message: 'User not found.' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Error updating user', details: error.message });
   }
 };
 
 const deleteUser = async (req, res) => {
   try {
-    await userService.deleteUserById(req.params.id);
-    return res.status(200).json("Usuário deletado com sucesso.");
-  } catch (err) {
-    return res.status(500).json(err);
+    const { id } = req.params;
+    const deleted = await User.destroy({ where: { id } });
+    if (deleted) {
+      res.status(200).json({ message: 'User deleted successfully.' });
+    } else {
+      res.status(404).json({ message: 'User not found.' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Error deleting user', details: error.message });
   }
 };
 
@@ -60,5 +90,5 @@ export default {
   getUsers,
   addUser,
   updateUser,
-  deleteUser
+  deleteUser,
 };

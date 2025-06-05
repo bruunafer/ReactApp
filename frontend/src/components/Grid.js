@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useEffect } from "react";
 import axios from "axios";
 import styled from "styled-components";
 import { FaTrash, FaEdit } from "react-icons/fa";
 import { toast } from "react-toastify";
+import { API_URL } from "../config"; 
 
 const Table = styled.table`
   width: 100%;
@@ -58,34 +59,41 @@ export const Th = styled.th`
 `;
 
 const Grid = ({ users, setUsers, setOnEdit }) => {
+  useEffect(() => {
+    axios
+      .get(`${API_URL}/users`) 
+      .then((res) => setUsers(res.data))
+      .catch(() => toast.error("Error loading users"));
+  }, [setUsers]);
+
   const handleEdit = (item) => {
     setOnEdit(item);
   };
 
   const handleDelete = async (id) => {
-  const confirmDelete = window.confirm("Tem certeza que deseja excluir este usuário?");
-  if (!confirmDelete) return;
+    const confirmDelete = window.confirm("Are you sure you want to delete this user?");
+    if (!confirmDelete) return;
 
-  try {
-    const { data } = await axios.delete(`http://localhost:3001/users/${id}`);
-    const newArray = users.filter((user) => user.id !== id);
-    setUsers(newArray);
-    toast.success(data);
-    setOnEdit(null);
-  } catch (error) {
-    const message = error.response?.data || "Erro ao deletar usuário";
-    toast.error(message);
-  }
-};
+    try {
+      const { data } = await axios.delete(`${API_URL}/users/${id}`); 
+      const newArray = users.filter((user) => user.id !== id);
+      setUsers(newArray);
+      toast.success(data.message || "User deleted successfully.");
+      setOnEdit(null);
+    } catch (error) {
+      const message = error.response?.data?.error || "Error deleting user";
+      toast.error(message);
+    }
+  };
 
   return (
     <Table>
       <Thead>
         <Tr>
-          <Th>Nome</Th>
-          <Th>Sexo</Th>
+          <Th>Name</Th>
+          <Th>Gender</Th>
           <Th>Email</Th>
-          <Th onlyWeb>Fone</Th>
+          <Th onlyWeb>Phone</Th>
           <Th></Th>
           <Th></Th>
         </Tr>
@@ -93,10 +101,10 @@ const Grid = ({ users, setUsers, setOnEdit }) => {
       <Tbody>
         {users.map((item) => (
           <Tr key={item.id}>
-            <Td width="20%">{item.nome || ""}</Td>
-            <Td width="10%">{item.sexo || ""}</Td>
+            <Td width="20%">{item.name || ""}</Td>
+            <Td width="10%">{item.gender || ""}</Td>
             <Td width="20%">{item.email || ""}</Td>
-            <Td width="10%" onlyWeb>{item.fone || ""}</Td>
+            <Td width="10%" onlyWeb>{item.phone || ""}</Td>
             <Td alignCenter width="5%">
               <FaEdit
                 style={{

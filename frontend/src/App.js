@@ -16,7 +16,7 @@ const Container = styled.div`
 const Title = styled.h1`
   margin-bottom: 20px;
   text-align: center;
-  color:rgb(53, 45, 206);
+  color: rgb(53, 45, 206);
   font-size: 2.2rem;
 `;
 
@@ -43,38 +43,45 @@ function App() {
   const getUsers = async () => {
   try {
     const res = await fetch(`${API_URL}/users`);
+
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+
     const data = await res.json();
 
-    //Ordenando alfabeticamente
+    if (!Array.isArray(data)) {
+      throw new Error("Expected an array from API");
+    }
+
     const sortedData = data.sort((a, b) =>
-      a.nome.localeCompare(b.nome)
+      a.name.localeCompare(b.name)
     );
 
     setUsers(sortedData);
   } catch (error) {
-    console.error("Erro ao buscar usuários", error);
+    console.error("Error fetching users:", error.message);
   }
 };
+
 
   useEffect(() => {
     getUsers();
   }, []);
 
-  // Filtro por nome
   const filteredUsers = users.filter((user) =>
-    user.nome.toLowerCase().includes(searchTerm.toLowerCase())
+    user.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <>
       <GlobalStyle />
       <Container>
-        <Title>USUÁRIOS</Title>
+        <Title>USERS</Title>
 
-        {/* Campo de busca */}
         <SearchInput
           type="text"
-          placeholder="Buscar por nome..."
+          placeholder="Search by name..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />

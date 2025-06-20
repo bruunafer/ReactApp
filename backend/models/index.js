@@ -1,18 +1,20 @@
-import { DataTypes } from 'sequelize';
-import sequelize from '../config/database.js';
+'use strict';
 
-const User = sequelize.define('User', {
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database.js');
+
+const User = sequelize.define('Users', {
   name: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(100),
     allowNull: false,
   },
   cpf: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(11),
     allowNull: false,
     unique: true,
   },
   gender: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(20),
     allowNull: false,
   },
   birth_date: {
@@ -27,16 +29,21 @@ const User = sequelize.define('User', {
     },
   },
   phone: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(15),
     allowNull: false,
   },
   address: {
+    type: DataTypes.STRING(200),
+    allowNull: false,
+  },
+  password: {
     type: DataTypes.STRING,
     allowNull: false,
   }
 }, {
-  tableName: 'users',  
-  timestamps: true
+  tableName: 'users',
+  timestamps: true,
+  underscored: true
 });
 
 export default User;

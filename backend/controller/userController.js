@@ -1,94 +1,92 @@
-import User from '../model/userModel.js'; 
-import userService from '../services/userService.js';
+import bcrypt from 'bcrypt';
+import User from '../models/userModels.js';
 
-const getUsers = async (req, res) => {
+// Função para gerar senha aleatória simples
+function generateRandomPassword(length = 8) {
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%';
+  let pass = '';
+  for (let i = 0; i < length; i++) {
+    pass += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return pass;
+}
+
+// GET - Listar usuários
+export const getUsers = async (req, res) => {
   try {
-    const users = await userService.getAllUsers();
-    res.json(users);
-  } catch (err) {
-    console.error('Error fetching users:', err);
-    res.status(500).json({ error: 'Failed to fetch users', details: err.message });
+    const users = await User.findAll();
+    return res.status(200).json(users);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
   }
 };
 
-const addUser = async (req, res) => {
+// POST - Criar usuário (com senha gerada automaticamente)
+export const createUser = async (req, res) => {
   try {
-    const {
-      name,
-      cpf,
-      gender,
-      birthDate, 
-      email,
-      phone,
-      address,
-    } = req.body;
+    const { name, cpf, gender, birth_date, address, phone, email } = req.body;
 
-    const user = await User.create({
+    const defaultPassword = generateRandomPassword();
+    const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+
+    const newUser = await User.create({
       name,
       cpf,
       gender,
-      birth_date: birthDate, 
-      email,
-      phone,
+      birth_date,
       address,
+      phone,
+      email,
+      password: hashedPassword,
     });
 
-    res.status(201).json(user);
+    return res.status(201).json(newUser);
   } catch (error) {
-    console.error('Erro ao criar usuário:', error);
-    res.status(500).json({ error: 'Error creating user', details: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
-const updateUser = async (req, res) => {
+// PUT - Atualizar usuário
+export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-const {
-  name,
-  cpf,
-  gender,
-  birthDate, 
-  email,
-  phone,
-  address
-} = req.body;
+    const { name, cpf, gender, birth_date, address, phone, email } = req.body;
 
-const [updated] = await User.update({
-  name,
-  cpf,
-  gender,
-  birth_date: birthDate,
-  email,
-  phone,
-  address
-}, { where: { id } });
-    if (updated) {
-      res.status(200).json({ message: 'User updated successfully.' });
-    } else {
-      res.status(404).json({ message: 'User not found.' });
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
     }
+
+    user.name = name;
+    user.cpf = cpf;
+    user.gender = gender;
+    user.birth_date = birth_date;
+    user.address = address;
+    user.phone = phone;
+    user.email = email;
+
+    await user.save();
+
+    return res.status(200).json(user);
   } catch (error) {
-    res.status(500).json({ error: 'Error updating user', details: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
-const deleteUser = async (req, res) => {
+// DELETE - Deletar usuário
+export const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const deleted = await User.destroy({ where: { id } });
-    if (deleted) {
-      res.status(200).json({ message: 'User deleted successfully.' });
-    } else {
-      res.status(404).json({ message: 'User not found.' });
-    }
-  } catch (error) {
-    res.status(500).json({ error: 'Error deleting user', details: error.message });
-  }
-};
 
-export default {
-  getUsers,
-  addUser,
-  updateUser,
-  deleteUser,
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    await user.destroy();
+
+    return res.status(200).json({ message: 'User deleted successfully' });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
 };
